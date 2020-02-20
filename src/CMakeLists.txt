@@ -1,6 +1,7 @@
 add_executable(
     srepl
     main.cxx
+    Srepl.cxx
 )
 
 target_link_libraries(
