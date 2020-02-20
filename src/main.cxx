@@ -32,6 +32,8 @@ public:
             askUserForMatches(file, contents, line);
             ++ line;
         }
+
+        toolbox::text_file::save(file, contents);
     }
 
 private:
@@ -42,7 +44,7 @@ private:
         auto m = std::cregex_iterator(line.begin(), line.end(), re_);
         auto e = std::cregex_iterator();
 
-        while (m != e) {
+        for (; m != e; ++m) {
             auto matchStr = std::string{line.substr(m->position(), m->length())};
             auto result = std::regex_replace(matchStr, re_, with_);
 
@@ -50,9 +52,30 @@ private:
                 << line.substr(0, m->position())
                 << TEXT_RED << TEXT_STRIKE << matchStr
                 << TEXT_GREEN << result
-                << TEXT_RESET << line.substr(m->position() + m->length())
-                << std::endl;
-            m ++;
+                << TEXT_RESET << line.substr(m->position() + m->length());
+
+            if (askYesNo() == false)
+                continue;
+
+            auto absolutePosition = line.data() - contents.data() + m->position();
+
+            contents.replace(absolutePosition, m->length(), result);
+            iter.recalculate();
+        }
+    }
+
+    bool askYesNo()
+    {
+        while (true) {
+            std::cout << "\nReplace? [y/n]: ";
+            std::flush(std::cout);
+            std::string r;
+            std::cin >> r;
+
+            if (r == "y" || r == "Y")
+                return true;
+            else if (r == "n" || r == "N")
+                return false;
         }
     }
 
