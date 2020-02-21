@@ -1,5 +1,5 @@
 #include "Srepl.hpp"
-
+#include "ChangeOnce.hpp"
 #include <toolbox/text_file.hpp>
 #include <toolbox/string/line_iterator.hpp>
 #include <iostream>
@@ -22,12 +22,10 @@ Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
 void Srepl::operator()(toolbox::fs::path file)
 {
     auto contents = toolbox::text_file::load(file);
-    bool changed = false;
+    auto changed = ChangeOnce{false};
 
     for (auto line = toolbox::string::line_iterator{contents}; line != toolbox::string::line_iterator{}; ++ line) {
-        if (askUserForMatches(file, contents, line)) {
-            changed = true;
-        }
+        changed = askUserForMatches(file, contents, line);
     }
 
     if (changed)
@@ -37,10 +35,8 @@ void Srepl::operator()(toolbox::fs::path file)
 bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line)
 {
     bool changed = false;
-    auto m = std::cregex_iterator(line.begin(), line.end(), re_);
-    auto e = std::cregex_iterator();
 
-    for (; m != e; ++m) {
+    for (auto m = std::cregex_iterator(line.begin(), line.end(), re_); m != std::cregex_iterator(); ++m) {
         auto matchStr = std::string{line.substr(m->position(), m->length())};
         auto result = std::regex_replace(matchStr, re_, with_);
 
