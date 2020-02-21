@@ -21,15 +21,17 @@ Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
 
 void Srepl::operator()(toolbox::fs::path file)
 {
+    // load the whole file
     auto contents = toolbox::text_file::load(file);
-    auto changed = ChangeOnce{false};
+
+    // if 'changed' will be set to true, lambda will be executed when exiting the scope
+    // that means it will be called only if askUserForMatches returns true at least once
+    auto changed = ChangeOnce{false}
+                   .on(true, [&]() { toolbox::text_file::save(file, contents); });
 
     for (auto line = toolbox::string::line_iterator{contents}; line != toolbox::string::line_iterator{}; ++ line) {
         changed = askUserForMatches(file, contents, line);
     }
-
-    if (changed)
-        toolbox::text_file::save(file, contents);
 }
 
 namespace // IO functions, could be extracted and may be a parameter for Srepl class
@@ -64,6 +66,9 @@ bool askYesNo(std::string_view question, std::string_view yes, std::string_view 
 bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line)
 {
     bool changed = false;
+
+    if (line.length() > 1024)
+        return false;
 
     for (auto m = std::cregex_iterator(line.begin(), line.end(), re_); m != std::cregex_iterator(); ++m) {
         auto matchStr = std::string{line.substr(m->position(), m->length())};
