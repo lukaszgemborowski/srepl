@@ -1,11 +1,9 @@
 #ifndef SREPL_SREPL_HPP
 #define SREPL_SREPL_HPP
 
-#include <toolbox/text_file.hpp>
-#include <toolbox/string/line_iterator.hpp>
 #include <regex>
 #include <string>
-#include <iostream>
+#include <toolbox/cpp/filesystem.hpp>
 
 class Srepl
 {
@@ -15,10 +13,14 @@ public:
 
 private:
     template<class Iterator>
-    void askUserForMatches(toolbox::fs::path file, std::string &contents, Iterator &iter)
+    bool askUserForMatches(toolbox::fs::path file, std::string &contents, Iterator &iter)
     {
-        if (askUserForMatches(file, contents, iter.lineNumber(), *iter))
+        if (askUserForMatches(file, contents, iter.lineNumber(), *iter)) {
             iter.recalculate();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     bool askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line);

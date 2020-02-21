@@ -1,5 +1,10 @@
 #include "Srepl.hpp"
 
+#include <toolbox/text_file.hpp>
+#include <toolbox/string/line_iterator.hpp>
+#include <iostream>
+#include <algorithm>
+
 namespace
 {
 const auto TEXT_GREEN = "\x1b[32m";
@@ -17,15 +22,16 @@ Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
 void Srepl::operator()(toolbox::fs::path file)
 {
     auto contents = toolbox::text_file::load(file);
-    auto line = toolbox::string::line_iterator{contents};
-    auto end = toolbox::string::line_iterator{};
+    bool changed = false;
 
-    while (line != end) {
-        askUserForMatches(file, contents, line);
-        ++ line;
+    for (auto line = toolbox::string::line_iterator{contents}; line != toolbox::string::line_iterator{}; ++ line) {
+        if (askUserForMatches(file, contents, line)) {
+            changed = true;
+        }
     }
 
-    toolbox::text_file::save(file, contents);
+    if (changed)
+        toolbox::text_file::save(file, contents);
 }
 
 bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line)
