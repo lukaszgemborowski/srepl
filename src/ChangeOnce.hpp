@@ -19,6 +19,8 @@ struct ChangeOnce
                 value_ = newValue;
             }
         }
+
+        return *this;
     }
 
     operator T() const
