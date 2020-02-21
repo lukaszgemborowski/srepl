@@ -24,7 +24,6 @@ private:
     }
 
     bool askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line);
-    bool askYesNo();
 
 private:
     toolbox::fs::path   path_;

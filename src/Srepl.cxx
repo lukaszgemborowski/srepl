@@ -11,6 +11,20 @@ const auto TEXT_GREEN = "\x1b[32m";
 const auto TEXT_RED = "\x1b[31m";
 const auto TEXT_RESET = "\x1b[0m";
 const auto TEXT_STRIKE = "\x1b[9m";
+
+bool askYesNo(std::string_view question, std::string_view yes, std::string_view no)
+{
+    while (true) {
+        std::cout << question << "[" << yes[0] << "/" << no[0] << "]: ";
+        std::string r;
+        std::cin >> r;
+
+        if (yes.find(r[0]) != std::string_view::npos)
+            return true;
+        else if (no.find(r[0]) != std::string_view::npos)
+            return false;
+    }
+}
 }
 
 Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
@@ -44,9 +58,10 @@ bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std
             << line.substr(0, m->position())
             << TEXT_RED << TEXT_STRIKE << matchStr
             << TEXT_GREEN << result
-            << TEXT_RESET << line.substr(m->position() + m->length());
+            << TEXT_RESET << line.substr(m->position() + m->length())
+            << "\n";
 
-        if (askYesNo() == false)
+        if (askYesNo("Replace?", "yY","nN") == false)
             continue;
 
         auto absolutePosition = line.data() - contents.data() + m->position();
@@ -55,19 +70,4 @@ bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std
     }
 
     return changed;
-}
-
-bool Srepl::askYesNo()
-{
-    while (true) {
-        std::cout << "\nReplace? [y/n]: ";
-        std::flush(std::cout);
-        std::string r;
-        std::cin >> r;
-
-        if (r == "y" || r == "Y")
-            return true;
-        else if (r == "n" || r == "N")
-            return false;
-    }
 }
