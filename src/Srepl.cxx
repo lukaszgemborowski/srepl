@@ -22,22 +22,22 @@ Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
 void Srepl::operator()(toolbox::fs::path file)
 {
     // load the whole file
-    auto contents = toolbox::text_file::load(file);
+    auto tf = toolbox::text_file{file};
 
     // if 'changed' will be set to true, lambda will be executed when exiting the scope
     // that means it will be called only if askUserForMatches returns true at least once
     auto changed = ChangeOnce{false}
-                   .on(true, [&]() { toolbox::text_file::save(file, contents); });
+                   .on(true, [&]() { tf.save(); });
 
-    for (auto line = toolbox::string::line_iterator{contents}; line != toolbox::string::line_iterator{}; ++ line) {
-        changed = askUserForMatches(file, contents, line);
+    for (auto line : tf.iterator<toolbox::string::line_iterator>()) {
+        changed = askUserForMatches(file, line);
     }
 }
 
 namespace // IO functions, could be extracted and may be a parameter for Srepl class
 {
 
-void printMatch(toolbox::fs::path file, std::size_t lineNumber, std::string_view line, std::string_view replacement, std::cmatch match)
+void printMatch(const toolbox::fs::path &file, std::size_t lineNumber, std::string_view line, std::string_view replacement, const std::cmatch &match)
 {
     std::cout << file << ":" << lineNumber << ": "
                 << line.substr(0, match.position())
@@ -50,7 +50,7 @@ void printMatch(toolbox::fs::path file, std::size_t lineNumber, std::string_view
 bool askYesNo(std::string_view question, std::string_view yes, std::string_view no)
 {
     while (true) {
-        std::cout << question << "[" << yes[0] << "/" << no[0] << "]: ";
+        std::cout << question << " [" << yes[0] << "/" << no[0] << "]: ";
         std::string r;
         std::cin >> r;
 
@@ -61,25 +61,40 @@ bool askYesNo(std::string_view question, std::string_view yes, std::string_view 
     }
 }
 
+std::string regex_replace(std::regex &re, std::string_view input, const std::string& with)
+{
+    std::string sub;
+    std::regex_replace(std::back_inserter(sub), input.begin(), input.end(), re, with);
+    return sub;
 }
 
-bool Srepl::askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line)
+}
+
+bool Srepl::askUserForMatches(const toolbox::fs::path& file, toolbox::string::line_reference line)
 {
     bool changed = false;
 
     if (line.length() > 1024)
         return false;
 
-    for (auto m = std::cregex_iterator(line.begin(), line.end(), re_); m != std::cregex_iterator(); ++m) {
-        auto matchStr = std::string{line.substr(m->position(), m->length())};
-        auto result = std::regex_replace(matchStr, re_, with_);
+    for (auto m = std::cregex_iterator((*line).begin(), (*line).end(), re_); m != std::cregex_iterator{}; ++m) {
+        // get substr of matched part of the line
+        auto matchStr = line.substr(m->position(), m->length());
 
-        printMatch(file, lineNumber, line, result, *m);
+        // replace that match with contents of with_
+        auto subst = regex_replace(re_, matchStr, with_);
+
+        // print a line and ask user how to proceed
+        printMatch(file, line.lineNumber(), *line, subst, *m);
         if (askYesNo("Replace?", "yY","nN") == false)
             continue;
 
-        auto absolutePosition = line.data() - contents.data() + m->position();
-        contents.replace(absolutePosition, m->length(), result);
+        // replace the match in-string
+        line.replace(m->position(), m->length(), subst);
+
+        // recalculate line iterator, TODO: do this inside replace method
+        line.recalculate();
+
         changed = true;
     }
 

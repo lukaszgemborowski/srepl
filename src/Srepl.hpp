@@ -4,6 +4,7 @@
 #include <regex>
 #include <string>
 #include <toolbox/cpp/filesystem.hpp>
+#include <toolbox/string/line_iterator.hpp>
 
 class Srepl
 {
@@ -12,18 +13,7 @@ public:
     void operator()(toolbox::fs::path file);
 
 private:
-    template<class Iterator>
-    bool askUserForMatches(toolbox::fs::path file, std::string &contents, Iterator &iter)
-    {
-        if (askUserForMatches(file, contents, iter.lineNumber(), *iter)) {
-            iter.recalculate();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    bool askUserForMatches(toolbox::fs::path file, std::string &contents, std::size_t lineNumber, std::string_view line);
+    bool askUserForMatches(const toolbox::fs::path& file, toolbox::string::line_reference line);
 
 private:
     toolbox::fs::path   path_;

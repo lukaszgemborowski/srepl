@@ -5,6 +5,6 @@ if [ ! -d 3rd/cpptoolbox ]; then
     cd 3rd/
     git clone https://github.com/lukaszgemborowski/cpptoolbox.git
     cd cpptoolbox/
-    git checkout 5bb45da72cc15cd3b6c1e46166dfa3f6e8115bb5
+    git checkout a56eb3a41b76afcb53055fd2a0ba15ef1e2c3af4
     cd ../..
 fi
