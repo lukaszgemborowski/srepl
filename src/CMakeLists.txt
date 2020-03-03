@@ -8,6 +8,7 @@ target_link_libraries(
     srepl
     PRIVATE
     cpptoolbox
+    args
     stdc++fs
 )
 

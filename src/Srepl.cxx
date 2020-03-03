@@ -13,10 +13,11 @@ const auto TEXT_RESET = "\x1b[0m";
 const auto TEXT_STRIKE = "\x1b[9m";
 }
 
-Srepl::Srepl(toolbox::fs::path path, std::regex re, std::string with)
+Srepl::Srepl(SreplMode mode, toolbox::fs::path path, std::regex re, std::string with)
     : path_ {path}
     , re_ {re}
     , with_ {with}
+    , mode_ {mode}
 {}
 
 void Srepl::operator()(toolbox::fs::path file)
@@ -86,8 +87,16 @@ bool Srepl::askUserForMatches(const toolbox::fs::path& file, toolbox::string::li
 
         // print a line and ask user how to proceed
         printMatch(file, line.lineNumber(), *line, subst, *m);
-        if (askYesNo("Replace?", "yY","nN") == false)
+
+        // show mode, do not ask and replace, just print the match
+        if (mode_ == SreplMode::Show) {
             continue;
+        }
+
+        if (mode_ == SreplMode::Interactive) {
+            if (askYesNo("Replace?", "yY","nN") == false)
+                continue;
+        }
 
         // replace the match in-string
         line.replace(m->position(), m->length(), subst);

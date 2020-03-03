@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
 project (srepl)
 add_subdirectory(3rd/cpptoolbox)
+add_subdirectory(3rd/args)
 add_subdirectory(src)
