@@ -1,17 +1,11 @@
 #ifndef SREPL_SREPL_HPP
 #define SREPL_SREPL_HPP
 
+#include "SreplMode.hpp"
 #include <regex>
 #include <string>
 #include <toolbox/cpp/filesystem.hpp>
 #include <toolbox/string/line_iterator.hpp>
-
-enum class SreplMode
-{
-    Interactive,
-    Replace,
-    Show
-};
 
 class Srepl
 {
