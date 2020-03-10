@@ -3,12 +3,28 @@
 #include <args/args.hpp>
 #include <iostream>
 
+auto opt_flag(char c, SreplMode &mode, SreplMode value)
+{
+    return args::opt {
+        c,
+        false,
+        args::save{mode},
+        [&mode, value](auto arg) {
+            if (arg)
+                return value;
+            else
+                return mode;
+        }
+    };
+}
+
 int main(int argc, char **argv)
 {
     auto mode = SreplMode::Show;
+
     auto parser = args::parser{
-        args::opt{'i', false, args::save{mode}, [](auto) { return SreplMode::Interactive; }},
-        args::opt{'y', false, args::save{mode}, [](auto) { return SreplMode::Replace; }},
+        opt_flag('i', mode, SreplMode::Interactive),
+        opt_flag('y', mode, SreplMode::Replace)
     };
 
     parser.parse(argc, argv);
