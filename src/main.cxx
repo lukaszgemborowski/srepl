@@ -3,30 +3,15 @@
 #include <args/args.hpp>
 #include <iostream>
 
-auto decideSreplMode(bool yesForAll, bool alwaysAsk)
-{
-    auto mode = SreplMode::Show;
-
-    if (yesForAll)
-        mode = SreplMode::Replace;
-    if (alwaysAsk)
-        mode = SreplMode::Interactive;
-
-    return mode;
-}
-
 int main(int argc, char **argv)
 {
-    auto opt_yesForAll = args::opt<bool>{'y', false};
-    auto opt_alwaysAsk = args::opt<bool>{'i', false};
-    auto parser = args::parser{opt_yesForAll, opt_alwaysAsk};
+    auto mode = SreplMode::Show;
+    auto parser = args::parser{
+        args::opt{'i', false, args::save{mode}, [](auto) { return SreplMode::Interactive; }},
+        args::opt{'y', false, args::save{mode}, [](auto) { return SreplMode::Replace; }},
+    };
+
     parser.parse(argc, argv);
-
-    if (*opt_yesForAll && *opt_alwaysAsk) {
-        std::cerr << argv[0] << " can't use -y together with -i\n";
-        return 0;
-    }
-
     auto args = parser.posargs();
 
     if (args.size() != 3) {
@@ -35,7 +20,7 @@ int main(int argc, char **argv)
     }
 
     Srepl srepl {
-        decideSreplMode(opt_yesForAll, opt_alwaysAsk),
+        mode,
         args[0],
         std::regex{args[1]},
         args[2]

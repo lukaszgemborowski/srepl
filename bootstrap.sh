@@ -12,4 +12,4 @@ clone_github() {
 }
 
 clone_github lukaszgemborowski cpptoolbox a56eb3a41b76afcb53055fd2a0ba15ef1e2c3af4
-clone_github lukaszgemborowski args d49109e4adb2c0b9dba21059cb4f70a900e94e68
+clone_github lukaszgemborowski args 45ce1d03c1a7f64ee5edfaf8bfbf7fb25257fdb2
