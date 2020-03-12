@@ -1,7 +1,6 @@
 #include "IterateFilesystem.hpp"
 #include "Srepl.hpp"
 #include "Args.hpp"
-#include <iostream>
 
 int main(int argc, char **argv)
 {
